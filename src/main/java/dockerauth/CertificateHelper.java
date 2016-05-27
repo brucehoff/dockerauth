@@ -18,6 +18,7 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Random;
 
+import org.apache.commons.codec.binary.Base32;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -39,8 +40,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
-
-import com.google.appengine.repackaged.org.apache.commons.codec.binary.Base32;
 
 // http://www.programcreek.com/java-api-examples/index.php?api=org.bouncycastle.cert.X509v3CertificateBuilder
 // http://www.programcreek.com/java-api-examples/index.php?source_dir=mockserver-master/mockserver-core/src/main/java/org/mockserver/socket/KeyStoreFactory.java

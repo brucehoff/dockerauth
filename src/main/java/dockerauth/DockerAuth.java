@@ -29,13 +29,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-
-import com.google.appengine.repackaged.org.apache.commons.codec.binary.Base64;
 
 // implements this spec:
 // https://github.com/docker/distribution/blob/master/docs/spec/auth/token.md

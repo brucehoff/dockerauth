@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.repackaged.com.google.api.client.util.IOUtils;
+import org.apache.commons.io.IOUtils;
 
 
 public class DockerNotify extends HttpServlet {
@@ -23,7 +23,7 @@ public class DockerNotify extends HttpServlet {
 //		ContentType contentType = ContentType.parse(req.getContentType());
 //		Charset charset = contentType.getCharset();
 		try {
-			IOUtils.copy(req.getInputStream(), baos, true);
+			IOUtils.copy(req.getInputStream(), baos);
 		} finally {
 			baos.close();
 		}
