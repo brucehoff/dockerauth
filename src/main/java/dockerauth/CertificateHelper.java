@@ -48,7 +48,7 @@ public class CertificateHelper {
 	public static void main(String[] args) throws Exception {
 		KeyPair keyPair = generateKeyPair();
 		X509Certificate cert = createCACert(keyPair.getPublic(), keyPair.getPrivate());
-		String path = args[1];
+		String path = args[0];
 		writeKeyPairAndCert(
 				keyPair, 
 				cert,

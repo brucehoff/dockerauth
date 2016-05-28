@@ -1,36 +1,35 @@
 # dockerauth
-This is a proof-of-concept implementation of the Docker delegated authorization mechanism, written in Java.  
-The code is NOT production ready.  It's most valuable as an example to start from.   Use at your own risk. 
-etc/.keystore contains a self-signed cert used to enable SSL.  THIS IS ONLY FOR TESTING.
+This is a proof-of-concept implementation of the Docker delegated authorization mechanism, written in Java.  The code is NOT production ready.  It's most valuable as an example to start from.   Use at your own risk.  etc/.keystore contains a self-signed cert used to enable SSL.  THIS IS ONLY FOR TESTING.
 
 
-## To run:
-### Generate the key used to sign authorization tokens.
-The key is shared between the authorization service and the registry.
+## To Run
+### Generate the key used to sign authorization tokens
+The certificate for the key is shared between the authorization service and the registry.
 ```
-docker run -it /path/to/shared/keys:/keys --rm brucehoff/dockerauth /etc/keygen.sh /keys
+mkdir -p signingkey
+docker run -it -v ${PWD}/signingkey:/keys --rm brucehoff/dockerauth /etc/keygen.sh
 ```
 ### Run the authorization service
 #### interactively:
 ```
-docker run -it --rm -v /path/to/shared/keys:/keys -p 8443:8443 brucehoff/dockerauth
+docker run -it --rm -v ${PWD}/signingkey:/keys -p 8443:8443 brucehoff/dockerauth
 ```
 #### or detached:
 ```
-docker run -d --name dockerauth -v /path/to/shared/keys:/keys -p 8443:8443 brucehoff/dockerauth
+docker run -d --name dockerauth -v ${PWD}/signingkey:/keys -p 8443:8443 brucehoff/dockerauth
 ```
 Running interactively lets you see the server logs as they are generated, which is helpful for seeing how notification events work.
 
 There are two services, one for authorization requests and one for event notifications. 
 To exercise the authorization request:
 ```
-curl "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=foo&scope=foo:bar:baz"
+curl -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=foo&scope=foo:bar:baz"
 ```
 (Replace 192.168.99.100 with the address of the host to which you've deployed.  If using Docker Machine 
 you can find this by running 'docker-machine ls'.)
 To exercise the notification service:
 ```
-curl -X POST -d "{\"event\":\"data\"}" https://192.168.99.100:8443/dockerauth/dockerNotify
+curl -k -X POST -d "{\"event\":\"data\"}" https://192.168.99.100:8443/dockerauth-1.0/dockerNotify
 ```
 Whatever text you put after "-d" will appear in the server logs
 
@@ -38,7 +37,7 @@ Whatever text you put after "-d" will appear in the server logs
 (You may have to change the auth svc IP address in config.yml, which you can retrieve from the source Github project.)
 ```
 # docker run -it --rm -p 5000:5000  --name registry \
--v /path/to/shared/keys/cert.pem:/etc/docker/registry/cert.pem \
+-v ${PWD}/signingkey/cert.pem:/etc/docker/registry/cert.pem \
 -v ${PWD}/etc/config.yml:/etc/docker/registry/config.yml registry:2 
 ```
 
