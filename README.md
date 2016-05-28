@@ -7,37 +7,37 @@ etc/.keystore contains a self-signed cert used to enable SSL.  THIS IS ONLY FOR 
 ## To run:
 ### Generate the key used to sign authorization tokens.
 The key is shared between the authorization service and the registry.
-{code}
+```
 docker run -it /path/to/shared/keys:/keys --rm brucehoff/dockerauth /etc/keygen.sh /keys
-{code}
+```
 ### Run the authorization service
 #### interactively:
-{code}
-# docker run -it --rm -v /path/to/shared/keys:/keys -p 8443:8443 brucehoff/dockerauth
-{code}
+```
+docker run -it --rm -v /path/to/shared/keys:/keys -p 8443:8443 brucehoff/dockerauth
+```
 #### or detached:
-{code}
+```
 docker run -d --name dockerauth -v /path/to/shared/keys:/keys -p 8443:8443 brucehoff/dockerauth
-{code}
+```
 
 There are two services, one for authorization requests and one for event notifications. 
 To exercise the authorization request:
-{code}
+```
 curl "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=foo&scope=foo:bar:baz"
-{code}
+```
 (Replace 192.168.99.100 with the address of the host to which you've deployed.  If using Docker Machine 
 you can find this by running 'docker-machine ls'.)
 To exercise the notification service:
-{code}
+```
 curl -X POST -d "{\"event\":\"data\"}" https://192.168.99.100:8443/dockerauth/dockerNotify
-{code}
+```
 
 ### Run the registry using the generated keys (you may have to change the auth svc IP address in config.yml, which you can retrieve from the source Github project):
-{code}
+```
 # docker run -it --rm -p 5000:5000  --name registry \
 -v /path/to/shared/keys/cert.pem:/etc/docker/registry/cert.pem \
 -v ${PWD}/etc/config.yml:/etc/docker/registry/config.yml registry:2 
-{code}
+```
 
 
 
