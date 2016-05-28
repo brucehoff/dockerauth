@@ -154,20 +154,6 @@ public class CertificateHelper {
 		}
 	}
 	
-//	public static void writeKeyPairAndCert(
-//			KeyPair keyPair, 
-//			X509Certificate cert) throws Exception {
-//		writeKeyPairAndCert(keyPair, 
-//				cert, 
-//				"private key", 
-//				"src/main/resources/privatekey.pem",
-//				"public key",
-//				"src/main/resources/publickey.pem",
-//				"cert",
-//				"src/main/resources/cert.pem"
-//				);
-//	}
-	
 	public static void writeKeyPairAndCert(
 			KeyPair keyPair, 
 			X509Certificate cert,

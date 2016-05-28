@@ -20,14 +20,11 @@ public class DockerNotify extends HttpServlet {
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//		ContentType contentType = ContentType.parse(req.getContentType());
-//		Charset charset = contentType.getCharset();
 		try {
 			IOUtils.copy(req.getInputStream(), baos);
 		} finally {
 			baos.close();
 		}
-//		String requestBody = baos.toString(charset==null? "ISO-8859-1" : charset.toString());
 		String requestBody = baos.toString("ISO-8859-1");
 		
 		logger.info(requestBody);

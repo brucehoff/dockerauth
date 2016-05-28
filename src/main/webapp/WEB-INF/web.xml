@@ -12,7 +12,7 @@
 		<url-pattern>/dockerAuth</url-pattern>
 	</servlet-mapping>
 
-	<!--  security-constraint>
+	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>dockerAuth</web-resource-name>
 			<url-pattern>/dockerAuth</url-pattern>
@@ -20,9 +20,9 @@
 		<user-data-constraint>
 			<transport-guarantee>CONFIDENTIAL</transport-guarantee>
 		</user-data-constraint>
-	</security-constraint-->
-	
-		<servlet>
+	</security-constraint>
+
+	<servlet>
 		<servlet-name>dockerNotify</servlet-name>
 		<servlet-class>dockerauth.DockerNotify</servlet-class>
 	</servlet>
@@ -31,14 +31,9 @@
 		<url-pattern>/dockerNotify</url-pattern>
 	</servlet-mapping>
 
-	<!-- security-constraint>
-		<web-resource-collection>
-			<web-resource-name>dockerNotify</web-resource-name>
-			<url-pattern>/dockerNotify</url-pattern>
-		</web-resource-collection>
-		<user-data-constraint>
-			<transport-guarantee>CONFIDENTIAL</transport-guarantee>
-		</user-data-constraint>
-	</security-constraint-->
-	
+	<!-- security-constraint> <web-resource-collection> <web-resource-name>dockerNotify</web-resource-name> 
+		<url-pattern>/dockerNotify</url-pattern> </web-resource-collection> <user-data-constraint> 
+		<transport-guarantee>CONFIDENTIAL</transport-guarantee> </user-data-constraint> 
+		</security-constraint -->
+
 </web-app>

@@ -56,8 +56,8 @@ public class DockerAuth extends HttpServlet {
 	private static final String ISSUER = "synapse.org";
 	private static final long TIME_WINDOW_SEC = 1200;
 	private static final String ACCESS = "access";
-	
-	
+
+
 	static {
 		Security.addProvider(new BouncyCastleProvider());
 	}
@@ -65,18 +65,11 @@ public class DockerAuth extends HttpServlet {
 
 
 	public static void main(String[] args) throws Exception {
-		//generateKeyPair();
 		KeyPair keyPair = readKeyPair();
 		String s = createToken(keyPair, "userName", "repository", "docker.sagebase.org", "user/helloworld", 
 				Arrays.asList(new String[]{"push", "pull"}));
 
 		System.out.println(s);
-
-//		ECPublicKey  validatingKey = (ECPublicKey)keyPair.getPublic();
-//		
-//		System.out.println(Jwts.parser().setSigningKey(validatingKey)			
-//				.parseClaimsJws(s));
-
 	}
 
 	private static PrivateKey readPrivateKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
@@ -151,7 +144,6 @@ public class DockerAuth extends HttpServlet {
 				setHeaderParam(Header.TYPE, Header.JWT_TYPE).
 				setHeaderParam("kid", keyId).
 				signWith(SignatureAlgorithm.ES256, key).compact();
-//		System.out.println(s);
 
 		// the signature is wrong.  regenerate it
 		try {
@@ -162,16 +154,7 @@ public class DockerAuth extends HttpServlet {
 			System.out.println("Will resign:\n"+pieces[0]+"."+pieces[1]);
 			String messageToSign = pieces[0]+"."+pieces[1];
 			System.out.println("original signature:    "+pieces[2]);
-//			ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(pieces[2].getBytes()));
-//			ASN1Primitive obj = bIn.readObject();
-//			DERApplicationSpecific app = (DERApplicationSpecific) obj;
-//			ASN1Sequence seq = (ASN1Sequence) app.getObject(app.getApplicationTag());
-//			Enumeration secEnum = seq.getObjects();
-//			while (secEnum.hasMoreElements()) {
-//			    ASN1Primitive seqObj = (ASN1Primitive) secEnum.nextElement();
-//			    System.out.println(seqObj);
-//			}
-			
+
 			Base64 base64 = new Base64();
 			// what are the original signature bytes?
 			byte[] originalSigBytes = base64.decode(pieces[2]);
@@ -179,17 +162,13 @@ public class DockerAuth extends HttpServlet {
 			int shouldBe48 = originalSigBytes[0];
 			int lengthOfRemaining = originalSigBytes[1]; // # of bytes, from originalSigBytes[2] to end
 			if (lengthOfRemaining>originalSigBytes.length-2) throw
-				new IllegalStateException("Expected <="+(originalSigBytes.length-2)+" but found "+lengthOfRemaining);
+			new IllegalStateException("Expected <="+(originalSigBytes.length-2)+" but found "+lengthOfRemaining);
 			int shouldBe2 = originalSigBytes[2];
 			if (shouldBe2!=2) throw new IllegalStateException("Exected 2 but found "+shouldBe2);
 			int lengthOfVR = originalSigBytes[3]; // should be 32
 			if (lengthOfVR!=32 && lengthOfVR!=33) throw new IllegalStateException("Exected 32 or 33 but found "+lengthOfVR);
 			// VR goes from originalSigBytes[4], for lengthOfVR bytes
 			// for Java, you can simply perform new BigInteger(1, byte[] r).toByteArray() as the default Java encoding of a BigInteger is identical to the ASN.1 encoding of INTEGER
-//			byte[] vrBytes = new byte[lengthOfVR];
-//			System.arraycopy(originalSigBytes, 4, vrBytes, 0, lengthOfVR);
-//			byte[] vrBigIntBytes = (new BigInteger(1, vrBytes)).toByteArray();
-//			if (vrBigIntBytes.length!=32) throw new IllegalStateException("Excpected 32 but found "+vrBigIntBytes.length);
 			shouldBe2 = originalSigBytes[4+lengthOfVR];
 			if (shouldBe2!=2) throw new IllegalStateException("Exected 2 but found "+shouldBe2);
 			int lengthOfVS = originalSigBytes[5+lengthOfVR];
@@ -197,39 +176,32 @@ public class DockerAuth extends HttpServlet {
 			// VS goes from originalSigBytes[6+lengthOfVR] for lengthOfVS bytes
 			// originalSigBytes.length should be >= 6+lengthOfVR+lengthOfVS
 			if (lengthOfVS>originalSigBytes.length-6-lengthOfVR) throw
-				new IllegalStateException("Expected <="+(originalSigBytes.length-6-lengthOfVR)+" but found "+lengthOfVS);
-//			byte[] vsBytes = new byte[lengthOfVS];
-//			System.arraycopy(originalSigBytes, 6+lengthOfVR, vsBytes, 0, lengthOfVS);
-//			BigInteger vs = new BigInteger(1, vsBytes);
-//			byte[] vsBigIntBytes = (new BigInteger(1, vsBytes)).toByteArray();
-//			if (vsBigIntBytes.length!=32) throw new IllegalStateException("Excpected 32 but found "+vsBigIntBytes.length);
-			
-			byte[] p1363Signature = new byte[64];
-//			System.arraycopy(vrBigIntBytes, 0, p1363Signature, 0, vrBigIntBytes.length);
-//			System.arraycopy(vsBigIntBytes, 0, p1363Signature, vrBigIntBytes.length, vsBigIntBytes.length);
+			new IllegalStateException("Expected <="+(originalSigBytes.length-6-lengthOfVR)+" but found "+lengthOfVS);
 
-			
-		     // r and s each occupy half the array
-		      // Remove padding bytes
+			byte[] p1363Signature = new byte[64];
+
+
+			// r and s each occupy half the array
+			// Remove padding bytes
 			int numVRBytes = lengthOfVR > 32 ? 32 : lengthOfVR;
-		      System.arraycopy(originalSigBytes, 4+(lengthOfVR > 32 ? 1 : 0), 
-		    		  p1363Signature, 0, numVRBytes);
-		      
-		      int numVSBytes = lengthOfVS > 32 ? 32 : lengthOfVS;
-		      if (numVRBytes+numVSBytes!=p1363Signature.length)
-		    	  throw new IllegalStateException("Source bytes number: "+(numVRBytes+numVSBytes)
-		      +" but destination array has length "+p1363Signature.length);
-		      System.arraycopy(originalSigBytes, 6+lengthOfVR+(lengthOfVS > 32 ? 1 : 0), 
-		    		  p1363Signature, numVRBytes, numVSBytes);
-			
-			
-			
+			System.arraycopy(originalSigBytes, 4+(lengthOfVR > 32 ? 1 : 0), 
+					p1363Signature, 0, numVRBytes);
+
+			int numVSBytes = lengthOfVS > 32 ? 32 : lengthOfVS;
+			if (numVRBytes+numVSBytes!=p1363Signature.length)
+				throw new IllegalStateException("Source bytes number: "+(numVRBytes+numVSBytes)
+						+" but destination array has length "+p1363Signature.length);
+			System.arraycopy(originalSigBytes, 6+lengthOfVR+(lengthOfVS > 32 ? 1 : 0), 
+					p1363Signature, numVRBytes, numVSBytes);
+
+
+
 			String base64Encoded = base64.encodeBase64URLSafeString(p1363Signature);
 			while (base64Encoded.endsWith("=")) 
 				base64Encoded = base64Encoded.substring(0, base64Encoded.length()-1);
-			
+
 			s = pieces[0]+"."+pieces[1]+"."+base64Encoded;
-			
+
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -260,7 +232,7 @@ public class DockerAuth extends HttpServlet {
 		String token = createToken(keyPair, userName, type, service, repository, Arrays.asList(accessTypes.split(",")));
 
 		logger.info("token: "+token);
-		
+
 		JSONObject responseJson = new JSONObject();
 		responseJson.put("token", token);
 		// TODO fill in 'issuedAt' and 'expiresIn'
