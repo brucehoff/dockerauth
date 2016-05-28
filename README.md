@@ -19,6 +19,7 @@ docker run -it --rm -v /path/to/shared/keys:/keys -p 8443:8443 brucehoff/dockera
 ```
 docker run -d --name dockerauth -v /path/to/shared/keys:/keys -p 8443:8443 brucehoff/dockerauth
 ```
+Running interactively lets you see the server logs as they are generated, which is helpful for seeing how notification events work.
 
 There are two services, one for authorization requests and one for event notifications. 
 To exercise the authorization request:
@@ -31,8 +32,10 @@ To exercise the notification service:
 ```
 curl -X POST -d "{\"event\":\"data\"}" https://192.168.99.100:8443/dockerauth/dockerNotify
 ```
+Whatever text you put after "-d" will appear in the server logs
 
-### Run the registry using the generated keys (you may have to change the auth svc IP address in config.yml, which you can retrieve from the source Github project):
+### Run the registry using the generated keys
+(You may have to change the auth svc IP address in config.yml, which you can retrieve from the source Github project.)
 ```
 # docker run -it --rm -p 5000:5000  --name registry \
 -v /path/to/shared/keys/cert.pem:/etc/docker/registry/cert.pem \
