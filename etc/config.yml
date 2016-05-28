@@ -1,0 +1,56 @@
+version: 0.1
+log:
+  level: debug
+  formatter: text
+  fields:
+    service: registry
+
+
+storage:
+    filesystem:
+        rootdirectory: /var/lib/registry
+#   s3:
+#     accesskey: AKIAJLMOV4I3XAGJJXRQ
+#     secretkey: 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
+#     region: us-east-1
+#     bucket: docker.registry-dev.sagebase.org
+#     encrypt: true
+#     secure: true
+#     v4auth: true
+#     chunksize: 5242880
+#     rootdirectory: /
+#   cache:
+#     layerinfo: inmemory
+
+
+
+auth:
+  token:
+    realm: http://192.168.99.100:8443/dockerauth/dockerAuth
+    service: registry.synapse.org
+    issuer: synapse.org
+    rootcertbundle: /etc/docker/registry/cert.pem
+
+
+
+http:
+  addr: :5000
+  secret: asecretforlocaldevelopment
+#  host: https://myregistryaddress.org:5000
+#  tls:
+#    certificate: /path/to/x509/public
+#    key: /path/to/x509/private
+#    clientcas:
+#      - /path/to/ca.pem
+#      - /path/to/another/ca.pem
+
+
+notifications:
+  endpoints:
+    - name: synapseListener
+      disabled: false
+      url: http://192.168.99.100:8443/dockerauth/dockerNotify
+#      headers: <http.Header>
+      timeout: 20s
+      threshold: 5
+      backoff: 10s
