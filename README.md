@@ -20,10 +20,11 @@ docker run -d --name dockerauth -v ${PWD}/signingkey:/keys -p 8080:8080 -p 8443:
 ```
 Running interactively lets you see the server logs as they are generated, which is helpful for seeing how notification events work.
 
-There are two services, one for authorization requests and one for event notifications. 
+There are two services, one for authorization requests and one for event notifications.   The registry seems to insist that the authorization service run over SSL (HTTPS).  The notification callback can run over HTTP or HTTPS but the registry throws exceptions if its SSL certificate is self-signed, so we simply use HTTP for this service.
+
 To exercise the authorization request:
 ```
-curl -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=myservice&scope=type:repository:access-types"
+curl -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=my.registry.com&scope=repository:username/reponame:push,pull"
 ```
 (Replace 192.168.99.100 with the address of the host to which you've deployed.  If using Docker Machine 
 you can find this by running 'docker-machine ls'.)
@@ -43,7 +44,7 @@ docker run -it --rm -p 5000:5000  --name registry \
 
 You may now make Docker commands to the registry, e.g.
 ```
-docker push 192.168.99.100:5000/foo/bar
+docker push 192.168.99.100:5000/username/reponame
 ```
 
 

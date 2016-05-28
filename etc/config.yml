@@ -10,8 +10,8 @@ storage:
     filesystem:
         rootdirectory: /var/lib/registry
 #   s3:
-#     accesskey: AKIAJLMOV4I3XAGJJXRQ
-#     secretkey: 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
+#     accesskey: 
+#     secretkey:
 #     region: us-east-1
 #     bucket: docker.registry-dev.sagebase.org
 #     encrypt: true
@@ -27,8 +27,8 @@ storage:
 auth:
   token:
     realm: https://192.168.99.100:8443/dockerauth-1.0/dockerAuth
-    service: registry.synapse.org
-    issuer: synapse.org
+    service: my.registry.com
+    issuer: registry.com
     rootcertbundle: /etc/docker/registry/cert.pem
 
 
@@ -47,7 +47,7 @@ http:
 
 notifications:
   endpoints:
-    - name: synapseListener
+    - name: aListener
       disabled: false
       url: http://192.168.99.100:8080/dockerauth-1.0/dockerNotify
 #      headers: <http.Header>
