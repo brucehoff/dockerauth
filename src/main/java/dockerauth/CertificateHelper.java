@@ -52,11 +52,11 @@ public class CertificateHelper {
 		writeKeyPairAndCert(
 				keyPair, 
 				cert,
-				"DM CHALLENGE SOFTLAYER PRIVATE KEY",
+				"PRIVATE KEY",
 				(new File(path, "privatekey.pem")).getAbsolutePath(),
-				"DM CHALLENGE SOFTLAYER PUBLIC KEY",
+				"PUBLIC KEY",
 				(new File(path, "publickey.pem")).getAbsolutePath(),
-				"DM CHALLENGE SOFTLAYER CERT",
+				"CERTIFICATE",
 				(new File(path, "cert.pem")).getAbsolutePath()
 				);
 	}
@@ -223,7 +223,7 @@ public class CertificateHelper {
 	    purposes.add(KeyPurposeId.id_kp_clientAuth);
 	    purposes.add(KeyPurposeId.anyExtendedKeyUsage);
 	    builder.addExtension(Extension.extendedKeyUsage, false, new DERSequence(purposes));
-
+	    
 	    X509Certificate cert = signCertificate(builder, privateKey);
 	    cert.checkValidity(new Date());
 	    cert.verify(publicKey);

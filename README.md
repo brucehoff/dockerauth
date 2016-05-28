@@ -12,35 +12,39 @@ docker run -it -v ${PWD}/signingkey:/keys --rm brucehoff/dockerauth /etc/keygen.
 ### Run the authorization service
 #### interactively:
 ```
-docker run -it --rm -v ${PWD}/signingkey:/keys -p 8443:8443 brucehoff/dockerauth
+docker run -it --rm --name dockerauth -v ${PWD}/signingkey:/keys -p 8080:8080 -p 8443:8443 brucehoff/dockerauth
 ```
 #### or detached:
 ```
-docker run -d --name dockerauth -v ${PWD}/signingkey:/keys -p 8443:8443 brucehoff/dockerauth
+docker run -d --name dockerauth -v ${PWD}/signingkey:/keys -p 8080:8080 -p 8443:8443 brucehoff/dockerauth
 ```
 Running interactively lets you see the server logs as they are generated, which is helpful for seeing how notification events work.
 
 There are two services, one for authorization requests and one for event notifications. 
 To exercise the authorization request:
 ```
-curl -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=foo&scope=foo:bar:baz"
+curl -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=myservice&scope=type:repository:access-types"
 ```
 (Replace 192.168.99.100 with the address of the host to which you've deployed.  If using Docker Machine 
 you can find this by running 'docker-machine ls'.)
 To exercise the notification service:
 ```
-curl -k -X POST -d "{\"event\":\"data\"}" https://192.168.99.100:8443/dockerauth-1.0/dockerNotify
+curl -X POST -d "{\"event\":\"data\"}" http://192.168.99.100:8080/dockerauth-1.0/dockerNotify
 ```
-Whatever text you put after "-d" will appear in the server logs
+Whatever text you put after "-d" will appear in the server logs.
 
 ### Run the registry using the generated keys
-(You may have to change the auth svc IP address in config.yml, which you can retrieve from the source Github project.)
+(You may have to change the authorization service IP address in config.yml, which you can retrieve from  https://github.com/brucehoff/dockerauth.)
 ```
-# docker run -it --rm -p 5000:5000  --name registry \
+docker run -it --rm -p 5000:5000  --name registry \
 -v ${PWD}/signingkey/cert.pem:/etc/docker/registry/cert.pem \
 -v ${PWD}/etc/config.yml:/etc/docker/registry/config.yml registry:2 
 ```
 
+You may now make Docker commands to the registry, e.g.
+```
+docker push 192.168.99.100:5000/foo/bar
+```
 
 
 ## Lessons learned:

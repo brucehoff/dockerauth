@@ -26,7 +26,7 @@ storage:
 
 auth:
   token:
-    realm: http://192.168.99.100:8443/dockerauth/dockerAuth
+    realm: https://192.168.99.100:8443/dockerauth-1.0/dockerAuth
     service: registry.synapse.org
     issuer: synapse.org
     rootcertbundle: /etc/docker/registry/cert.pem
@@ -49,7 +49,7 @@ notifications:
   endpoints:
     - name: synapseListener
       disabled: false
-      url: http://192.168.99.100:8443/dockerauth/dockerNotify
+      url: http://192.168.99.100:8080/dockerauth-1.0/dockerNotify
 #      headers: <http.Header>
       timeout: 20s
       threshold: 5
