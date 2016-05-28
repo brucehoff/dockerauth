@@ -48,7 +48,7 @@ docker push 192.168.99.100:5000/username/reponame
 ```
 
 
-## Lessons learned:
+## Lessons learned
 The specification implemented by the authorization service is:
 https://github.com/docker/distribution/blob/master/docs/spec/auth/token.md
 
