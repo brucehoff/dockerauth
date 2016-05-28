@@ -16,4 +16,4 @@ hs_err_pid*
 .project
 .settings/
 eclipse-launch-profiles/
-src/main/resources/
+#src/main/resources/

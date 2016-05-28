@@ -1,6 +1,7 @@
 # dockerauth
 This is a proof-of-concept implementation of the Docker delegated authorization mechanism, written in Java.  
-The code is NOT production ready.  It's most valuable as an example to start from.   Use at your own risk.  
+The code is NOT production ready.  It's most valuable as an example to start from.   Use at your own risk. 
+In particular, there is a private key checked in to the repository to allow quick set up / deployment.  This must only be used for tinkering around.  You are welcome to use the included CertificateHelper class to generate new credentials. 
 
 
 
