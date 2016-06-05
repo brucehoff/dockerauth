@@ -179,7 +179,7 @@ public class CertificateHelper {
 	    //
 	    // signers name
 	    //
-	    X500Name issuerName = new X500Name("CN=synapse.org, O=SageBionetworks, L=Seattle, ST=Washington, C=US");
+	    X500Name issuerName = new X500Name("CN=registry.com, O=SageBionetworks, L=Seattle, ST=Washington, C=US");
 
 	    //
 	    // subjects name - the same as we are self signed.
