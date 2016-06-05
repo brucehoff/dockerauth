@@ -53,7 +53,7 @@ import org.json.simple.JSONObject;
 public class DockerAuth extends HttpServlet {
 	private Logger logger = Logger.getLogger("DockerAuth");
 
-	private static final String ISSUER = "synapse.org";
+	private static final String ISSUER = "registry.com";
 	private static final long TIME_WINDOW_SEC = 1200;
 	private static final String ACCESS = "access";
 
@@ -225,7 +225,7 @@ public class DockerAuth extends HttpServlet {
 		logger.info("userName: "+userName+" type: "+type+" service: "+
 				service+" repository: "+repository+" accessTypes: "+accessTypes);
 
-		// TODO check what access 'userName' has access to 'repository'
+		// TODO check what access 'userName' has to 'repository'
 		// TODO and return the subset of 'accessTypes' which 'userName' is permitted
 		// TODO cache KeyPair so we don't read it each time
 		KeyPair keyPair = readKeyPair();

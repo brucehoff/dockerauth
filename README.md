@@ -37,7 +37,7 @@ Whatever text you put after "-d" will appear in the server logs.
 ### Run the registry using the generated keys
 (You may have to change the authorization service IP address in config.yml, which you can retrieve from  https://github.com/brucehoff/dockerauth.)
 ```
-docker run -it --rm -p 5000:5000  --name registry \
+docker run -it --rm -p 5000:5000 --link dockerauth:dockerauth --name registry \
 -v ${PWD}/signingkey/cert.pem:/etc/docker/registry/cert.pem \
 -v ${PWD}/etc/config.yml:/etc/docker/registry/config.yml registry:2 
 ```
