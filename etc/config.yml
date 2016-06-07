@@ -1,6 +1,6 @@
 version: 0.1
 log:
-  level: debug
+  level: info
   formatter: text
   fields:
     service: registry
@@ -26,7 +26,7 @@ storage:
 
 auth:
   token:
-    realm: https://dockerauth:8443/dockerauth-1.0/dockerAuth
+    realm: https://192.168.99.100:8443/dockerauth-1.0/dockerAuth
     service: my.registry.com
     issuer: registry.com
     rootcertbundle: /etc/docker/registry/cert.pem
@@ -49,7 +49,7 @@ notifications:
   endpoints:
     - name: aListener
       disabled: false
-      url: http://dockerauth:8080/dockerauth-1.0/dockerNotify
+      url: http://192.168.99.100:8080/dockerauth-1.0/dockerNotify
 #      headers: <http.Header>
       timeout: 20s
       threshold: 5

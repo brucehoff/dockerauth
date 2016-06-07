@@ -3,6 +3,27 @@ This is a proof-of-concept implementation of the Docker delegated authorization 
 
 
 ## To Run
+### Enable the use of an 'insecure registry'
+This allows us to run the demo without setting up a proper certificate chain for the registry service.  The instructions for doing so are here:
+https://docs.docker.com/registry/insecure/#deploying-a-plain-http-registry
+If using Docker Machine, use 'docker-machine ls' to get the IP address of the daemon, e.g.
+```
+docker-machine ls
+
+NAME      ACTIVE   DRIVER       STATE     URL                         SWARM   DOCKER    ERRORS
+...
+default   *        virtualbox   Running   tcp://192.168.99.100:2376           v1.11.2 
+...
+```
+Then remove the existing machine,
+```
+docker-machine rm default
+```
+and recreate, allowing the insecure registry:
+```
+docker-machine create --driver virtualbox --engine-insecure-registry 192.168.99.100:5000 default
+```
+
 ### Generate the key used to sign authorization tokens
 The certificate for the key is shared between the authorization service and the registry.
 ```
@@ -37,7 +58,7 @@ Whatever text you put after "-d" will appear in the server logs.
 ### Run the registry using the generated keys
 (You may have to change the authorization service IP address in config.yml, which you can retrieve from  https://github.com/brucehoff/dockerauth.)
 ```
-docker run -it --rm -p 5000:5000 --link dockerauth:dockerauth --name registry \
+docker run -it --rm -p 5000:5000 --name registry \
 -v ${PWD}/signingkey/cert.pem:/etc/docker/registry/cert.pem \
 -v ${PWD}/etc/config.yml:/etc/docker/registry/config.yml registry:2 
 ```

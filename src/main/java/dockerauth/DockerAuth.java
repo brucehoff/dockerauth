@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -65,8 +66,9 @@ public class DockerAuth extends HttpServlet {
 
 
 	public static void main(String[] args) throws Exception {
-		KeyPair keyPair = readKeyPair();
-		String s = createToken(keyPair, "userName", "repository", "docker.sagebase.org", "user/helloworld", 
+		PrivateKey key = readPrivateKey();
+		String keyId = readKeyId();
+		String s = createToken(key, keyId, "userName", "repository", "docker.sagebase.org", "user/helloworld", 
 				Arrays.asList(new String[]{"push", "pull"}));
 
 		System.out.println(s);
@@ -83,26 +85,18 @@ public class DockerAuth extends HttpServlet {
 			pemReader.close();
 		}
 	}
-
-	// TODO instead of reading public key from 'publickey.pem' read in 'cert.pem' and extract the public key
-	private static PublicKey readPublicKey(KeyFactory factory, String filename) throws InvalidKeySpecException, FileNotFoundException, IOException {
-		PemReader pemReader = new PemReader(new InputStreamReader(DockerAuth.class.getClassLoader().getResourceAsStream(filename)));
-		try {
-			PemObject pemObject = pemReader.readPemObject();
-			byte[] content = pemObject.getContent();
-			X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(content);
-			return factory.generatePublic(pubKeySpec);
-		} finally {
-			pemReader.close();
-		}
+	
+	private static String readKeyId() throws IOException {
+		List<String> content = IOUtils.readLines(DockerAuth.class.getClassLoader().getResourceAsStream("keyid.txt"));
+		if (content.size()!=1) throw new RuntimeException("Expected one line but found "+content.size());
+		return content.get(0);
 	}
 
-	public static KeyPair readKeyPair() {
+	public static PrivateKey readPrivateKey() {
 		try {
 			KeyFactory factory = KeyFactory.getInstance(CertificateHelper.KEY_GENERATION_ALGORITHM, "BC");
 			PrivateKey priv = readPrivateKey(factory,"privatekey.pem");
-			PublicKey pub = readPublicKey(factory, "publickey.pem");
-			return new KeyPair(pub, priv);
+			return priv;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -110,11 +104,8 @@ public class DockerAuth extends HttpServlet {
 
 	@SuppressWarnings("all")
 	public static String createToken(
-			KeyPair keyPair, String userName, String type, 
+			PrivateKey key, String keyId, String userName, String type, 
 			String registry, String repository, List<String> actions) {
-
-		ECPrivateKey key = (ECPrivateKey)keyPair.getPrivate();
-		ECPublicKey  validatingKey = (ECPublicKey)keyPair.getPublic();
 
 		long now = System.currentTimeMillis();
 
@@ -136,9 +127,6 @@ public class DockerAuth extends HttpServlet {
 				.setId(UUID.randomUUID().toString())
 				.setSubject(userName);
 		claims.put(ACCESS, access);
-
-		// TODO don't compute the key's ID each time
-		String keyId = CertificateHelper.computeKeyId(keyPair.getPublic());
 
 		String s = Jwts.builder().setClaims(claims).
 				setHeaderParam(Header.TYPE, Header.JWT_TYPE).
@@ -225,11 +213,9 @@ public class DockerAuth extends HttpServlet {
 		logger.info("userName: "+userName+" type: "+type+" service: "+
 				service+" repository: "+repository+" accessTypes: "+accessTypes);
 
-		// TODO check what access 'userName' has to 'repository'
-		// TODO and return the subset of 'accessTypes' which 'userName' is permitted
-		// TODO cache KeyPair so we don't read it each time
-		KeyPair keyPair = readKeyPair();
-		String token = createToken(keyPair, userName, type, service, repository, Arrays.asList(accessTypes.split(",")));
+		PrivateKey key = readPrivateKey();
+		String keyId = readKeyId(); 
+		String token = createToken(key, keyId, userName, type, service, repository, Arrays.asList(accessTypes.split(",")));
 
 		logger.info("token: "+token);
 
