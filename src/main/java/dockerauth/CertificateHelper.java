@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.Random;
 
 import org.apache.commons.codec.binary.Base32;
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -50,12 +49,11 @@ public class CertificateHelper {
 		KeyPair keyPair = generateKeyPair();
 		X509Certificate cert = createCACert(keyPair.getPublic(), keyPair.getPrivate());
 		String path = args[0];
-		writeKeyKeyIdAndCert(
+		writeKeyAndCert(
 				keyPair, 
 				cert,
 				"PRIVATE KEY",
 				(new File(path, "privatekey.pem")).getAbsolutePath(),
-				(new File(path, "keyid.txt")).getAbsolutePath(),
 				"CERTIFICATE",
 				(new File(path, "cert.pem")).getAbsolutePath()
 				);
@@ -154,23 +152,15 @@ public class CertificateHelper {
 		}
 	}
 	
-	public static void writeKeyKeyIdAndCert(
+	public static void writeKeyAndCert(
 			KeyPair keyPair, 
 			X509Certificate cert,
 			String privateKeyLabel,
 			String privateKeyFilePath,
-			String keyIdFilePath,
 			String certificatelabel,
 			String certificateFilePath) throws Exception {
 			PemObject pemObject = new PemObject(privateKeyLabel, keyPair.getPrivate().getEncoded());
 			writeToFile(pemObject, privateKeyFilePath);
-			String keyId = CertificateHelper.computeKeyId(keyPair.getPublic());
-			FileOutputStream fos = new FileOutputStream(keyIdFilePath);
-			try {
-				IOUtils.write(keyId, fos);
-			} finally {
-				fos.close();
-			}			
 			pemObject = new PemObject(certificatelabel, cert.getEncoded());
 			writeToFile(pemObject, certificateFilePath);
 	}

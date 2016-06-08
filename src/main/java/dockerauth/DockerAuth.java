@@ -10,15 +10,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.KeyFactory;
-import java.security.KeyPair;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.Security;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -30,8 +27,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.jce.provider.X509CertificateObject;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.json.simple.JSONArray;
@@ -67,7 +65,8 @@ public class DockerAuth extends HttpServlet {
 
 	public static void main(String[] args) throws Exception {
 		PrivateKey key = readPrivateKey();
-		String keyId = readKeyId();
+		X509Certificate cert = readCertificate("cert.pem");
+		String keyId = CertificateHelper.computeKeyId(cert.getPublicKey());
 		String s = createToken(key, keyId, "userName", "repository", "docker.sagebase.org", "user/helloworld", 
 				Arrays.asList(new String[]{"push", "pull"}));
 
@@ -86,12 +85,6 @@ public class DockerAuth extends HttpServlet {
 		}
 	}
 	
-	private static String readKeyId() throws IOException {
-		List<String> content = IOUtils.readLines(DockerAuth.class.getClassLoader().getResourceAsStream("keyid.txt"));
-		if (content.size()!=1) throw new RuntimeException("Expected one line but found "+content.size());
-		return content.get(0);
-	}
-
 	public static PrivateKey readPrivateKey() {
 		try {
 			KeyFactory factory = KeyFactory.getInstance(CertificateHelper.KEY_GENERATION_ALGORITHM, "BC");
@@ -100,6 +93,21 @@ public class DockerAuth extends HttpServlet {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public static X509Certificate readCertificate(String filename) throws IOException {
+		PemReader pemReader = new PemReader(new InputStreamReader(DockerAuth.class.getClassLoader().getResourceAsStream(filename)));
+		try {
+			PemObject pemObject = pemReader.readPemObject();
+			byte[] content = pemObject.getContent();
+			Certificate certificate = Certificate.getInstance(content);
+			return new X509CertificateObject(certificate);
+		} catch (CertificateParsingException e) {
+			throw new RuntimeException(e);
+		} finally {
+			pemReader.close();
+		}
+		
 	}
 
 	@SuppressWarnings("all")
@@ -214,7 +222,9 @@ public class DockerAuth extends HttpServlet {
 				service+" repository: "+repository+" accessTypes: "+accessTypes);
 
 		PrivateKey key = readPrivateKey();
-		String keyId = readKeyId(); 
+		X509Certificate cert = readCertificate("cert.pem");
+		String keyId = CertificateHelper.computeKeyId(cert.getPublicKey());
+
 		String token = createToken(key, keyId, userName, type, service, repository, Arrays.asList(accessTypes.split(",")));
 
 		logger.info("token: "+token);
