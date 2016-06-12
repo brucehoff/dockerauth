@@ -23,6 +23,7 @@ and recreate, allowing the insecure registry:
 ```
 docker-machine create --driver virtualbox --engine-insecure-registry 192.168.99.100:5000 default
 ```
+(The 'gotcha' here is that docker-machine may create 'default' using a new IP address.  If you run into this problem one solution is to use a back-end machine/daemon for executing docker commands which is different from the one used to run the registry and authorization service containers.  You would first start the back end running the containers and then enter its IP address in the '--engine-insecure-registry' parameter when starting the second daemon.)
 
 ### Generate the key used to sign authorization tokens, along with the corresponding certificate
 The certificate for the key is shared between the authorization service and the registry.
