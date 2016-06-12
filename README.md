@@ -29,10 +29,10 @@ docker-machine create --driver virtualbox --engine-insecure-registry 192.168.99.
 The certificate for the key is shared between the authorization service and the registry.
 ```
 mkdir -p signingkey
-openssl ecparam -name secp521r1 -genkey | openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt > signingkey/privatekey.pem
+openssl ecparam -name secp256r1 -genkey | openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt > signingkey/privatekey.pem
 openssl req -new -x509 -key signingkey/privatekey.pem -out signingkey/cert.pem -days 36500
 ```
-In the choice of elliptic curve for key generation, the Docker registry seems to require one of secp224r1, secp256r1, secp384r1, secp521r1.
+(In the choice of elliptic curve for key generation, the Docker registry seems to require one of secp224r1, secp256r1, secp384r1, secp521r1.  This code works with the 256 bit algorithm.)
 ### Run the authorization service
 #### interactively:
 ```
