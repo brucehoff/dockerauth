@@ -24,16 +24,18 @@ and recreate, allowing the insecure registry:
 docker-machine create --driver virtualbox --engine-insecure-registry 192.168.99.100:5000 default
 ```
 
-### Generate the key used to sign authorization tokens
+### Generate the key used to sign authorization tokens, along with the corresponding certificate
 The certificate for the key is shared between the authorization service and the registry.
 ```
 mkdir -p signingkey
-docker run -it -v ${PWD}/signingkey:/keys --rm brucehoff/dockerauth /etc/keygen.sh
+openssl ecparam -name secp256k1 -genkey | openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt > signingkey/privatekey.pem
+openssl req -new -x509 -key signingkey/privatekey.pem -out signingkey/cert.pem -days 36500
 ```
 ### Run the authorization service
 #### interactively:
 ```
 docker run -it --rm --name dockerauth -v ${PWD}/signingkey:/keys -p 8080:8080 -p 8443:8443 brucehoff/dockerauth
+
 ```
 #### or detached:
 ```
