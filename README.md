@@ -49,7 +49,7 @@ There are two services, one for authorization requests and one for event notific
 
 To exercise the authorization request:
 ```
-curl -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=my.registry.com&scope=repository:username/reponame:push,pull"
+curl -H Authorization:"Basic dW5hbWU6cHdk" -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=my.registry.com&scope=repository:username/reponame:push,pull"
 ```
 To exercise the notification service:
 ```
@@ -67,9 +67,10 @@ docker run -it --rm -p 5000:5000 --name registry \
 
 You may now make Docker commands to the registry, e.g.
 ```
+docker login 192.168.99.100:5000
 docker push 192.168.99.100:5000/username/reponame
 ```
-
+(You can give any user name and password when prompted to log in.)
 
 ## Lessons learned
 The specification implemented by the authorization service is:

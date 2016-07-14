@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServlet;
@@ -72,6 +73,8 @@ public class DockerAuth extends HttpServlet {
 				Arrays.asList(new String[]{"push", "pull"}));
 
 		System.out.println(s);
+		
+		createToken(key, keyId, "userName", null, "docker.sagebase.org", null, null);
 	}
 	
 	// from https://botbot.me/freenode/cryptography-dev/2015-12-04/?page=1
@@ -150,10 +153,10 @@ public class DockerAuth extends HttpServlet {
 		JSONArray access = new JSONArray();
 		JSONObject accessEntry = new JSONObject();
 		access.add(accessEntry);
-		accessEntry.put("type", type);
-		accessEntry.put("name", repository);
+		if (type!=null) accessEntry.put("type", type);
+		if (repository!=null) accessEntry.put("name", repository);
 		JSONArray actionArray = new JSONArray();
-		actionArray.addAll(actions);
+		if (actions!=null) actionArray.addAll(actions);
 		accessEntry.put("actions", actionArray);
 
 		Claims claims = Jwts.claims()
@@ -238,14 +241,51 @@ public class DockerAuth extends HttpServlet {
 	@Override
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
+		try {
+			doGetIntern(req, resp);
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "", e);
+			throw new RuntimeException(e);
+		}
+	}
+		
+	private void doGetIntern(HttpServletRequest req, HttpServletResponse resp)
+				throws IOException {
+		
+		String header = req.getHeader("Authorization");
+		if (header!=null && header.startsWith("Basic ")) {
+			String base64EncodedCredentials = header.substring("Basic ".length());
+			String basicCredentials = new String(Base64.decodeBase64(base64EncodedCredentials));
+			int colon = basicCredentials.indexOf(":");
+			if (colon>0 && colon<basicCredentials.length()-1) {
+				String name = basicCredentials.substring(0, colon);
+				String password = basicCredentials.substring(colon+1);
+				logger.info("basic credentials: name: "+name+" password: "+password);
+			} else {
+				logger.info("basic credentials: "+basicCredentials);
+			}
+		} else {
+			logger.info("no 'Authorization: Basic ' header.");
+			resp.setStatus(401);
+			return;
+		}
 
 		String service = req.getParameter("service");
+		logger.info("service: "+service);
 		String scope = req.getParameter("scope");
-		String[] scopeParts = scope.split(":");
-		if (scopeParts.length!=3) throw new RuntimeException("Expected 3 parts but found "+scopeParts.length);
-		String type = scopeParts[0];
-		String repository = scopeParts[1];
-		String accessTypes = scopeParts[2];
+		logger.info("scope: "+scope);
+		String type = null;
+		String repository = null;
+		String accessTypes = null;
+		if (scope==null) {
+			// this is an authentication request
+		} else {
+			String[] scopeParts = scope.split(":");
+			if (scopeParts.length!=3) throw new RuntimeException("Expected 3 parts but found "+scopeParts.length);
+			type = scopeParts[0];
+			repository = scopeParts[1];
+			accessTypes = scopeParts[2];
+		}
 
 		String userName = "synPrincipal"; // empty string for anonymous
 		logger.info("userName: "+userName+" type: "+type+" service: "+
@@ -255,7 +295,9 @@ public class DockerAuth extends HttpServlet {
 		X509Certificate cert = readCertificate("cert.pem");
 		String keyId = computeKeyId(cert.getPublicKey());
 
-		String token = createToken(key, keyId, userName, type, service, repository, Arrays.asList(accessTypes.split(",")));
+		String token = createToken(key, keyId, userName, type, service, repository, 
+				accessTypes==null?null:Arrays.asList(accessTypes.split(","))
+				);
 
 		logger.info("token: "+token);
 
