@@ -50,7 +50,9 @@ notifications:
     - name: aListener
       disabled: false
       url: http://192.168.99.100:8080/dockerauth-1.0/dockerNotify
-#      headers: <http.Header>
+      headers:
+        Authorization:
+          - Basic Zm9vOmJhcg==
       timeout: 20s
       threshold: 5
       backoff: 10s
