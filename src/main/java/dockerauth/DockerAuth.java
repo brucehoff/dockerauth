@@ -169,73 +169,10 @@ public class DockerAuth extends HttpServlet {
 				.setSubject(userName);
 		claims.put(ACCESS, access);
 
-		String s = Jwts.builder().setClaims(claims).
+		return Jwts.builder().setClaims(claims).
 				setHeaderParam(Header.TYPE, Header.JWT_TYPE).
 				setHeaderParam("kid", keyId).
 				signWith(SignatureAlgorithm.ES256, key).compact();
-
-		// the signature is wrong.  regenerate it
-		try {
-			String[] pieces = s.split("\\.");
-			if (pieces.length!=3) throw new RuntimeException("Expected 3 pieces but found "+pieces.length);
-
-			// sign
-			System.out.println("Will resign:\n"+pieces[0]+"."+pieces[1]);
-			String messageToSign = pieces[0]+"."+pieces[1];
-			System.out.println("original signature:    "+pieces[2]);
-
-			Base64 base64 = new Base64();
-			// what are the original signature bytes?
-			byte[] originalSigBytes = base64.decode(pieces[2]);
-
-			int shouldBe48 = originalSigBytes[0];
-			int lengthOfRemaining = originalSigBytes[1]; // # of bytes, from originalSigBytes[2] to end
-			if (lengthOfRemaining>originalSigBytes.length-2) throw
-			new IllegalStateException("Expected <="+(originalSigBytes.length-2)+" but found "+lengthOfRemaining);
-			int shouldBe2 = originalSigBytes[2];
-			if (shouldBe2!=2) throw new IllegalStateException("Exected 2 but found "+shouldBe2);
-			int lengthOfVR = originalSigBytes[3]; // should be 32
-			if (lengthOfVR!=32 && lengthOfVR!=33) throw new IllegalStateException("Exected 32 or 33 but found "+lengthOfVR);
-			// VR goes from originalSigBytes[4], for lengthOfVR bytes
-			// for Java, you can simply perform new BigInteger(1, byte[] r).toByteArray() as the default Java encoding of a BigInteger is identical to the ASN.1 encoding of INTEGER
-			shouldBe2 = originalSigBytes[4+lengthOfVR];
-			if (shouldBe2!=2) throw new IllegalStateException("Exected 2 but found "+shouldBe2);
-			int lengthOfVS = originalSigBytes[5+lengthOfVR];
-			if (lengthOfVS!=32 && lengthOfVS!=33) throw new IllegalStateException("Exected 32 or 33 but found "+lengthOfVS);
-			// VS goes from originalSigBytes[6+lengthOfVR] for lengthOfVS bytes
-			// originalSigBytes.length should be >= 6+lengthOfVR+lengthOfVS
-			if (lengthOfVS>originalSigBytes.length-6-lengthOfVR) throw
-			new IllegalStateException("Expected <="+(originalSigBytes.length-6-lengthOfVR)+" but found "+lengthOfVS);
-
-			byte[] p1363Signature = new byte[64];
-
-
-			// r and s each occupy half the array
-			// Remove padding bytes
-			int numVRBytes = lengthOfVR > 32 ? 32 : lengthOfVR;
-			System.arraycopy(originalSigBytes, 4+(lengthOfVR > 32 ? 1 : 0), 
-					p1363Signature, 0, numVRBytes);
-
-			int numVSBytes = lengthOfVS > 32 ? 32 : lengthOfVS;
-			if (numVRBytes+numVSBytes!=p1363Signature.length)
-				throw new IllegalStateException("Source bytes number: "+(numVRBytes+numVSBytes)
-						+" but destination array has length "+p1363Signature.length);
-			System.arraycopy(originalSigBytes, 6+lengthOfVR+(lengthOfVS > 32 ? 1 : 0), 
-					p1363Signature, numVRBytes, numVSBytes);
-
-
-
-			String base64Encoded = base64.encodeBase64URLSafeString(p1363Signature);
-			while (base64Encoded.endsWith("=")) 
-				base64Encoded = base64Encoded.substring(0, base64Encoded.length()-1);
-
-			s = pieces[0]+"."+pieces[1]+"."+base64Encoded;
-
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		return s;
-
 	}
 
 	@Override
