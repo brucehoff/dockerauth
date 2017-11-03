@@ -12,16 +12,16 @@ docker-machine ls
 
 NAME      ACTIVE   DRIVER       STATE     URL                         SWARM   DOCKER    ERRORS
 ...
-default   *        virtualbox   Running   tcp://192.168.99.100:2376           v1.11.2 
+default   *        virtualbox   Running   tcp://0.0.0.0:2376           v1.11.2 
 ...
 ```
-The IP address shown, if different from the example, will replace '192.168.99.100' in several places below.  Now remove the existing machine,
+The IP address shown, if different from the example, will replace '0.0.0.0' in several places below.  Now remove the existing machine,
 ```
 docker-machine rm default
 ```
 and recreate, allowing the insecure registry:
 ```
-docker-machine create --driver virtualbox --engine-insecure-registry 192.168.99.100:5000 default
+docker-machine create --driver virtualbox --engine-insecure-registry 0.0.0.0:5000 default
 ```
 (The 'gotcha' here is that docker-machine may create 'default' using a new IP address.  If you run into this problem one solution is to use a back-end machine/daemon for executing docker commands which is different from the one used to run the registry and authorization service containers.  You would first start the back end running the containers and then enter its IP address in the '--engine-insecure-registry' parameter when starting the second daemon.)
 
@@ -49,11 +49,11 @@ There are two services, one for authorization requests and one for event notific
 
 To exercise the authorization request:
 ```
-curl -H Authorization:"Basic dW5hbWU6cHdk" -k "https://192.168.99.100:8443/dockerauth-1.0/dockerAuth?service=my.registry.com&scope=repository:username/reponame:push,pull"
+curl -H Authorization:"Basic dW5hbWU6cHdk" -k "https://0.0.0.0:8443/dockerauth-1.0/dockerAuth?service=my.registry.com&scope=repository:username/reponame:push,pull"
 ```
 To exercise the notification service:
 ```
-curl -X POST -d "{\"event\":\"data\"}" http://192.168.99.100:8080/dockerauth-1.0/dockerNotify
+curl -X POST -d "{\"event\":\"data\"}" http://0.0.0.0:8080/dockerauth-1.0/dockerNotify
 ```
 Whatever text you put after "-d" will appear in the server logs.
 
@@ -67,8 +67,8 @@ docker run -it --rm -p 5000:5000 --name registry \
 
 You may now make Docker commands to the registry, e.g.
 ```
-docker login 192.168.99.100:5000
-docker push 192.168.99.100:5000/username/reponame
+docker login 0.0.0.0:5000
+docker push 0.0.0.0:5000/username/reponame
 ```
 (You can give any user name and password when prompted to log in.)
 
@@ -79,7 +79,7 @@ https://github.com/docker/distribution/blob/master/docs/spec/auth/token.md
 There were a number of 'gotchas' getting the service to work.  To summarize:
 - rootcertbundle must actually be a certificate, not a public key.  It IS correct to use a .pem formatted file
 - localhost:5000 -> :5000 in config.yml
-- The "key ID" (kid) in the JWT "JOSE Header" is not clearly defined.  After much head scratching and searching I found that the definition is: "SPKI DER SHA-256 hash, strip of the last two bytes, base32 encode it and then add a : every four chars."
+- The "key ID" (kid) in the JWT "JOSE Header" is not clearly defined.  After much head scratching and searching I found that the definition is: "SPKI DER SHA-256 hash, strip off the last two bytes, base32 encode it and then add a : every four chars."
 - must use latest versions of JWT (>=0.7.0) and Bouncycastle (>=1.55) to get signature in P1363 format rather than ASN.1
 - must use url-safe base64 encode of the JWT.  (This IS in the doc's, but I found it to be easily missed.)
 

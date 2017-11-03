@@ -197,7 +197,7 @@ public class DockerAuth extends HttpServlet {
 			if (colon>0 && colon<basicCredentials.length()-1) {
 				String name = basicCredentials.substring(0, colon);
 				String password = basicCredentials.substring(colon+1);
-				logger.info("basic credentials: name: "+name+" password: "+password);
+				logger.info("basic credentials: name: "+name+" password: <suppressed>");
 			} else {
 				logger.info("basic credentials: "+basicCredentials);
 			}
@@ -238,12 +238,30 @@ public class DockerAuth extends HttpServlet {
 
 		logger.info("token: "+token);
 
-		JSONObject responseJson = new JSONObject();
-		responseJson.put("token", token);
-		// TODO fill in 'issuedAt' and 'expiresIn'
+		JSONObject jsonToReturn;
+		int statusToReturn;
+		if (true) {
+			JSONObject responseJson = new JSONObject();
+			responseJson.put("token", token);
+			// TODO fill in 'issuedAt' and 'expiresIn'
+			jsonToReturn = responseJson;
+			statusToReturn = 200;
+		} else {
+		
+		JSONObject errorJson = new JSONObject();
+		JSONArray errorArray = new JSONArray();
+		JSONObject singleError = new JSONObject();
+		singleError.put("code", "DENIED");
+		singleError.put("message", "You made an error!!");
+		errorArray.add(singleError);
+		errorJson.put("errors", errorArray);
+		
+		jsonToReturn = errorJson;
+		statusToReturn = 403;
+		}
 
 		resp.setContentType("application/json");
-		resp.getOutputStream().println(responseJson.toString());
-		resp.setStatus(200);
+		resp.getOutputStream().println(jsonToReturn.toString());
+		resp.setStatus(statusToReturn);
 	}
 }
